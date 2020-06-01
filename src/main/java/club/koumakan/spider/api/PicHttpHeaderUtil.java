@@ -5,6 +5,7 @@ import io.vertx.core.http.HttpMethod;
 import io.vertx.core.http.impl.headers.VertxHttpHeaders;
 
 import java.nio.charset.StandardCharsets;
+import java.util.Optional;
 import java.util.UUID;
 
 public class PicHttpHeaderUtil {
@@ -23,6 +24,15 @@ public class PicHttpHeaderUtil {
   private final String quality = "original";
   private final String nonce = UUID.randomUUID().toString().replace("-", "");
   private final HMACSHA256 hmacsha256 = new HMACSHA256(secretKey.getBytes(StandardCharsets.UTF_8));
+
+  private Optional<String> token = Optional.empty();
+
+  public PicHttpHeaderUtil() {
+  }
+
+  public PicHttpHeaderUtil(String token) {
+    this.token = Optional.ofNullable(token);
+  }
 
   public VertxHttpHeaders getHttpHeaders(String targetURL, HttpMethod httpMethod) {
     String currentTime = String.valueOf(System.currentTimeMillis() / 1000);
@@ -46,6 +56,7 @@ public class PicHttpHeaderUtil {
       .add("signature", signature)
       .add(HttpHeaders.CONTENT_TYPE, "application/json; charset=UTF-8");
 
+    token.ifPresent(v -> headers.add("authorization", v));
     return headers;
   }
 }

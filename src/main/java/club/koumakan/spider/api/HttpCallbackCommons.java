@@ -14,14 +14,12 @@ public interface HttpCallbackCommons {
       if (res.succeeded()) {
         HttpResponse<T> response = res.result();
 
-        if (response.statusCode() != 200) {
+        if (response.statusCode() != 200)
           handler.handle(Future.failedFuture(response.statusMessage() + " -> " + response.body()));
-        } else {
+        else
           handler.handle(Future.succeededFuture(response.body()));
-        }
-      } else {
+      } else
         handler.handle(Future.failedFuture(res.cause()));
-      }
     };
   }
 }

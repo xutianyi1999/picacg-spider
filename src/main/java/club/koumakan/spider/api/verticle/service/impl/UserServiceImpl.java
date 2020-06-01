@@ -1,35 +1,22 @@
-package club.koumakan.spider.api.service;
+package club.koumakan.spider.api.verticle.service.impl;
 
 import club.koumakan.spider.api.HttpCallbackCommons;
 import club.koumakan.spider.api.PicHttpHeaderUtil;
+import club.koumakan.spider.api.verticle.service.UserService;
 import io.vertx.core.AsyncResult;
 import io.vertx.core.Handler;
-import io.vertx.core.Vertx;
 import io.vertx.core.http.HttpMethod;
 import io.vertx.core.json.JsonObject;
-import io.vertx.core.net.ProxyOptions;
 import io.vertx.ext.web.client.WebClient;
-import io.vertx.ext.web.client.WebClientOptions;
 import io.vertx.ext.web.codec.BodyCodec;
-
-import java.util.Optional;
 
 public class UserServiceImpl implements UserService {
 
-  private final Vertx vertx;
   private final WebClient client;
   private final PicHttpHeaderUtil picHttpHeaderUtil = new PicHttpHeaderUtil();
 
-  public UserServiceImpl(Vertx vertx, Optional<ProxyOptions> proxyOptions) {
-    this.vertx = vertx;
-
-    WebClientOptions options = new WebClientOptions()
-      .setUserAgent(PicHttpHeaderUtil.USER_AGENT)
-      .setSsl(true)
-      .setTrustAll(true);
-
-    proxyOptions.ifPresent(options::setProxyOptions);
-    this.client = WebClient.create(vertx, options);
+  public UserServiceImpl(WebClient client) {
+    this.client = client;
   }
 
   @Override
