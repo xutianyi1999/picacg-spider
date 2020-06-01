@@ -7,12 +7,12 @@ import io.vertx.core.Vertx;
 import io.vertx.core.json.JsonObject;
 
 @ProxyGen
-public interface SpiderService {
+public interface UserService {
 
-  String ebAddress = "SpiderService";
+  String ebAddress = "UserService";
 
-  static SpiderService createProxy(Vertx vertx, String address) {
-    return new SpiderServiceVertxEBProxy(vertx, address);
+  static UserService createProxy(Vertx vertx, String address) {
+    return new UserServiceVertxEBProxy(vertx, address);
   }
 
   void login(String email, String password, Handler<AsyncResult<JsonObject>> handler);

@@ -1,7 +1,7 @@
 package club.koumakan.spider.api;
 
-import club.koumakan.spider.api.service.SpiderService;
-import club.koumakan.spider.api.service.SpiderServiceImpl;
+import club.koumakan.spider.api.service.UserService;
+import club.koumakan.spider.api.service.UserServiceImpl;
 import io.vertx.core.AbstractVerticle;
 import io.vertx.core.Promise;
 import io.vertx.core.net.ProxyOptions;
@@ -10,7 +10,7 @@ import io.vertx.serviceproxy.ServiceBinder;
 
 import java.util.Optional;
 
-public class SpiderVerticle extends AbstractVerticle {
+public class UserVerticle extends AbstractVerticle {
 
   @Override
   public void start(Promise<Void> startPromise) {
@@ -20,8 +20,8 @@ public class SpiderVerticle extends AbstractVerticle {
       .setPort(19999);
 
     new ServiceBinder(vertx)
-      .setAddress(SpiderService.ebAddress)
-      .register(SpiderService.class, new SpiderServiceImpl(vertx, Optional.of(proxyOptions)));
+      .setAddress(UserService.ebAddress)
+      .register(UserService.class, new UserServiceImpl(vertx, Optional.of(proxyOptions)));
 
     startPromise.complete();
   }

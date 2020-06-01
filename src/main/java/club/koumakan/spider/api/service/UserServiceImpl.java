@@ -14,13 +14,13 @@ import io.vertx.ext.web.codec.BodyCodec;
 
 import java.util.Optional;
 
-public class SpiderServiceImpl implements SpiderService {
+public class UserServiceImpl implements UserService {
 
   private final Vertx vertx;
   private final WebClient client;
   private final PicHttpHeaderUtil picHttpHeaderUtil = new PicHttpHeaderUtil();
 
-  public SpiderServiceImpl(Vertx vertx, Optional<ProxyOptions> proxyOptions) {
+  public UserServiceImpl(Vertx vertx, Optional<ProxyOptions> proxyOptions) {
     this.vertx = vertx;
 
     WebClientOptions options = new WebClientOptions()
