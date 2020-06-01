@@ -23,22 +23,18 @@ public class PicHttpHeaderUtil {
   private final String appUUID = UUID.randomUUID().toString();
   private final String quality = "original";
   private final String nonce = UUID.randomUUID().toString().replace("-", "");
+
   private final HMACSHA256 hmacsha256 = new HMACSHA256(secretKey.getBytes(StandardCharsets.UTF_8));
 
   private Optional<String> token = Optional.empty();
 
-  public PicHttpHeaderUtil() {
-  }
-
-  public PicHttpHeaderUtil(String token) {
+  public void setToken(String token) {
     this.token = Optional.ofNullable(token);
   }
 
   public VertxHttpHeaders getHttpHeaders(String targetURL, HttpMethod httpMethod) {
     String currentTime = String.valueOf(System.currentTimeMillis() / 1000);
-
     String temp = targetURL.substring(1) + currentTime + nonce + httpMethod + apiKey;
-
     String signature = hmacsha256.encode(temp.toLowerCase().getBytes(StandardCharsets.UTF_8));
 
     VertxHttpHeaders headers = new VertxHttpHeaders()
