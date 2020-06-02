@@ -71,7 +71,10 @@ public class MainVerticle extends AbstractVerticle {
             if (pageNum < totalPages) {
               f.accept(pageNum + 1);
             } else sink.complete();
-          } else sink.error(res.cause());
+          } else {
+            res.cause().printStackTrace();
+            sink.complete();
+          }
         })
       );
       getBooksByPage.accept(startPageIndex);
@@ -101,7 +104,10 @@ public class MainVerticle extends AbstractVerticle {
                 if (pageNum < totalPages) {
                   f.accept(pageNum + 1);
                 } else sink.complete();
-              } else sink.error(res.cause());
+              } else {
+                res.cause().printStackTrace();
+                sink.complete();
+              }
             })
           );
           getImagesByPage.accept(1);
@@ -127,7 +133,10 @@ public class MainVerticle extends AbstractVerticle {
             if (res.result()) {
               sink.next(bookTitle + "-" + tuple.getT2() + "-" + originalName).complete();
             } else sink.complete();
-          } else sink.error(res.cause());
+          } else {
+            res.cause().printStackTrace();
+            sink.complete();
+          }
         }
       ));
       return flux;
