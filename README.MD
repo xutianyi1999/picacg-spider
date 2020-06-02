@@ -1,4 +1,4 @@
-# picage-spider
+# picacg-spider
 哔咔漫画收藏夹抓取
 
 ## Config
