@@ -32,9 +32,9 @@ public class PicHttpHeaderUtil {
     this.token = Optional.ofNullable(token);
   }
 
-  public VertxHttpHeaders getHttpHeaders(String targetURL, HttpMethod httpMethod) {
+  public VertxHttpHeaders getHttpHeaders(String targetUri, HttpMethod httpMethod) {
     String currentTime = String.valueOf(System.currentTimeMillis() / 1000);
-    String temp = targetURL.substring(1) + currentTime + nonce + httpMethod + apiKey;
+    String temp = targetUri.substring(1) + currentTime + nonce + httpMethod + apiKey;
     String signature = hmacsha256.encode(temp.toLowerCase().getBytes(StandardCharsets.UTF_8));
 
     VertxHttpHeaders headers = new VertxHttpHeaders()

@@ -1,16 +1,21 @@
 package club.koumakan.spider.api;
 
+import club.koumakan.spider.YFact;
 import club.koumakan.spider.api.service.SpiderService;
 import io.vertx.core.AbstractVerticle;
-import io.vertx.core.Future;
-import io.vertx.core.Handler;
-import io.vertx.core.Promise;
 import io.vertx.core.json.JsonObject;
 import io.vertx.core.net.ProxyOptions;
 import io.vertx.core.net.ProxyType;
 import io.vertx.ext.web.client.WebClient;
 import io.vertx.ext.web.client.WebClientOptions;
+import reactor.core.publisher.Flux;
+import reactor.core.publisher.FluxSink;
+import reactor.core.publisher.Mono;
+import reactor.core.publisher.MonoSink;
+import reactor.util.function.Tuple3;
+import reactor.util.function.Tuples;
 
+import java.util.function.Consumer;
 import java.util.function.Function;
 
 public class SpiderVerticle extends AbstractVerticle {
@@ -40,33 +45,75 @@ public class SpiderVerticle extends AbstractVerticle {
     String email = config.getString("email");
     String password = config.getString("password");
 
-    SpiderService spiderService = new SpiderService(client);
+    SpiderService spiderService = new SpiderService(client, null, null);
 
-    Handler<Promise<Void>> login = promise -> spiderService.login(email, password, r -> {
+    Consumer<MonoSink<Void>> login = sink -> spiderService.login(email, password, r -> {
       if (r.succeeded()) {
-        promise.complete();
+        sink.success();
         System.out.println("login success");
-      } else promise.fail(r.cause());
+      } else sink.error(r.cause());
     });
 
-    Function<Void, Future<Void>> getMyFavoriteBooks = none ->
-      Future.future(promise -> spiderService.getMyFavoriteBooks(1, res -> {
-        if (res.succeeded()) {
-          System.out.println(res.result().encodePrettily());
-          promise.complete();
-        } else promise.fail(res.cause());
-      }));
+    Consumer<FluxSink<JsonObject>> getMyFavoriteBooks = sink -> {
+      Consumer<Integer> getBooksByPage = YFact.yConsumer(f ->
+        pageNum -> spiderService.getMyFavoriteBooks(pageNum, res -> {
+          if (res.succeeded()) {
+            JsonObject comics = res.result()
+              .getJsonObject("data")
+              .getJsonObject("comics");
 
-    Future
-      .future(login)
-      .compose(getMyFavoriteBooks)
-      .onSuccess(none -> {
-        System.out.println("download success");
-        vertx.close();
-      })
-      .onFailure(cause -> {
-        cause.printStackTrace();
-        vertx.close();
-      });
+            comics.getJsonArray("docs").forEach(v -> sink.next((JsonObject) v));
+            Integer totalPages = comics.getInteger("pages");
+
+            if (pageNum < totalPages) {
+              f.accept(pageNum + 1);
+            } else sink.complete();
+          } else sink.error(res.cause());
+        })
+      );
+      getBooksByPage.accept(51);
+    };
+
+    Function<JsonObject, Flux<Tuple3<JsonObject, Integer, JsonObject>>> getBookResult = doc -> {
+      String bookId = doc.getString("_id");
+      Integer epsCount = doc.getInteger("epsCount");
+
+      // tuple <doc, epsId, pictureJson>
+      Flux<Tuple3<JsonObject, Integer, JsonObject>> flux = Flux.range(1, epsCount)
+        .flatMap(epsId -> Flux.create(sink -> {
+          Consumer<Integer> getImagesByPage = YFact.yConsumer(f -> pageNum ->
+            spiderService.getBookResult(bookId, epsId, pageNum, res -> {
+              if (res.succeeded()) {
+                JsonObject pagesJson = res.result()
+                  .getJsonObject("data")
+                  .getJsonObject("pages");
+
+                pagesJson.getJsonArray("docs").forEach(v ->
+                  sink.next(Tuples.of(doc, epsId, v))
+                );
+
+                Integer totalPages = pagesJson.getInteger("pages");
+
+                if (pageNum < totalPages) {
+                  f.accept(pageNum + 1);
+                } else sink.complete();
+              } else sink.error(res.cause());
+            })
+          );
+          getImagesByPage.accept(1);
+        }));
+
+      return flux;
+    };
+
+    Mono.create(login)
+      .thenMany(Flux.create(getMyFavoriteBooks))
+      .flatMap(getBookResult)
+      .subscribe(v -> {
+        System.out.println("--------------------------------------------------------------------------------");
+        System.out.println(v.getT1().encodePrettily());
+        System.out.println(v.getT2());
+        System.out.println(v.getT3().encodePrettily());
+      }, Throwable::printStackTrace);
   }
 }
