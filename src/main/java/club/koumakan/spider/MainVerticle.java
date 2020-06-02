@@ -3,7 +3,6 @@ package club.koumakan.spider;
 import club.koumakan.spider.api.PicHttpHeaderUtil;
 import club.koumakan.spider.api.service.SpiderService;
 import io.vertx.core.AbstractVerticle;
-import io.vertx.core.Promise;
 import io.vertx.core.json.JsonObject;
 import io.vertx.core.net.ProxyOptions;
 import io.vertx.core.net.ProxyType;
@@ -22,13 +21,16 @@ import java.util.function.Function;
 public class MainVerticle extends AbstractVerticle {
 
   @Override
-  public void start(Promise<Void> startPromise) {
+  public void start() {
     WebClientOptions options = new WebClientOptions()
       .setUserAgent(PicHttpHeaderUtil.USER_AGENT)
       .setSsl(true)
       .setTrustAll(true);
 
     JsonObject config = vertx.fileSystem().readFileBlocking("./config.json").toJsonObject();
+
+    String imgDirectory = config.getString("imgDirectory");
+    int startPageIndex = config.getInteger("startPageIndex");
 
     JsonObject socks5 = config.getJsonObject("socks5");
 
@@ -46,7 +48,7 @@ public class MainVerticle extends AbstractVerticle {
     String email = config.getString("email");
     String password = config.getString("password");
 
-    SpiderService spiderService = new SpiderService(client, vertx.fileSystem(), "D:\\pic-test");
+    SpiderService spiderService = new SpiderService(client, vertx.fileSystem(), imgDirectory);
 
     Consumer<MonoSink<Void>> login = sink -> spiderService.login(email, password, r -> {
       if (r.succeeded()) {
@@ -72,7 +74,7 @@ public class MainVerticle extends AbstractVerticle {
           } else sink.error(res.cause());
         })
       );
-      getBooksByPage.accept(51);
+      getBooksByPage.accept(startPageIndex);
     };
 
     Function<JsonObject, Flux<Tuple3<JsonObject, Integer, JsonObject>>> getBookResult = doc -> {
@@ -138,8 +140,12 @@ public class MainVerticle extends AbstractVerticle {
       .doOnNext(filename -> System.out.println("download: " + filename))
       .count()
       .subscribe(count -> {
-        System.out.println("download " + count + "img");
+        System.out.println("count: " + count + " img");
         System.out.println("done");
-      }, Throwable::printStackTrace);
+        vertx.close();
+      }, err -> {
+        err.printStackTrace();
+        vertx.close();
+      });
   }
 }
