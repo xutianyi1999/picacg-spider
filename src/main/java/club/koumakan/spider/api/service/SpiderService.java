@@ -91,8 +91,6 @@ public class SpiderService {
             client.get(443, fileServer, uri)
               .as(BodyCodec.pipe(file))
               .send(HttpCallbackCommons.standardHttpCallback(r -> {
-                file.close();
-
                 if (r.succeeded()) promise.complete();
                 else {
                   fileSystem.delete(filePath, t -> {
