@@ -28,7 +28,7 @@ public class MainVerticle extends AbstractVerticle {
   public void start() {
 
     WebClientOptions options = new WebClientOptions()
-      .setMaxPoolSize(30)
+      .setKeepAlive(true)
       .setUserAgent(PicHttpHeaderUtil.USER_AGENT)
       .setSsl(true)
       .setTrustAll(true);
