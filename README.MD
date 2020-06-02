@@ -25,5 +25,5 @@
 ## Usages
 与picacg-spider.jar同级目录创建config.json
 ```shell script
-java -jar picacg-spider
+java -jar picacg-spider.jar
 ```

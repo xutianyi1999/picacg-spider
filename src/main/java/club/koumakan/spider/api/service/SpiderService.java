@@ -13,6 +13,7 @@ import io.vertx.core.json.JsonObject;
 import io.vertx.ext.web.client.WebClient;
 import io.vertx.ext.web.codec.BodyCodec;
 
+import java.nio.file.Path;
 import java.nio.file.Paths;
 
 public class SpiderService {
@@ -76,24 +77,27 @@ public class SpiderService {
                           String bookTitle, int epsId, String imgOriginalName,
                           Handler<AsyncResult<Boolean>> handler) {
 
-    Paths.get(imgDirectory, bookTitle, String.valueOf(epsId)).toFile().mkdirs();
-    String filePath = Paths.get(imgDirectory, bookTitle, String.valueOf(epsId), imgOriginalName).toString();
-
+    Path filePath = Paths.get(imgDirectory, bookTitle, String.valueOf(epsId), imgOriginalName);
+    String filePathStr = filePath.toString();
+    String fileParentStr = filePath.getParent().toString();
     String uri = "/static/" + imgPath;
 
-    fileSystem.exists(filePath, res -> {
+    fileSystem.exists(filePathStr, res -> {
       if (res.succeeded()) {
         if (!res.result()) {
-          Future.<AsyncFile>future(promise -> fileSystem.open(filePath, openOptions, r -> {
+          Future.future(promise -> fileSystem.mkdirs(fileParentStr, r -> {
+            if (r.succeeded()) promise.complete();
+            else promise.fail(r.cause());
+          })).compose(none -> Future.<AsyncFile>future(promise -> fileSystem.open(filePathStr, openOptions, r -> {
             if (r.succeeded()) promise.complete(r.result());
             else promise.fail(r.cause());
-          })).compose(file -> Future.future(promise ->
+          }))).compose(file -> Future.future(promise ->
             client.get(443, fileServer, uri)
               .as(BodyCodec.pipe(file))
               .send(HttpCallbackCommons.standardHttpCallback(r -> {
                 if (r.succeeded()) promise.complete();
                 else {
-                  fileSystem.delete(filePath, t -> {
+                  fileSystem.delete(filePathStr, t -> {
                     if (t.failed()) t.cause().printStackTrace();
                   });
                   promise.fail(r.cause());
