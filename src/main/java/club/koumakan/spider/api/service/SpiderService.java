@@ -72,25 +72,28 @@ public class SpiderService {
       .send(HttpCallbackCommons.standardHttpCallback(handler));
   }
 
-  public void downloadImg(String fileServer, String imgId,
+  public void downloadImg(String fileServer, String imgPath,
                           String bookTitle, int epsId, String imgOriginalName,
                           Handler<AsyncResult<Boolean>> handler) {
 
-    String uri = "/static/" + imgId;
+    Paths.get(imgDirectory, bookTitle, String.valueOf(epsId)).toFile().mkdirs();
     String filePath = Paths.get(imgDirectory, bookTitle, String.valueOf(epsId), imgOriginalName).toString();
+
+    String uri = "/static/" + imgPath;
 
     fileSystem.exists(filePath, res -> {
       if (res.succeeded()) {
         if (!res.result()) {
           Future.<AsyncFile>future(promise -> fileSystem.open(filePath, openOptions, r -> {
-            if (r.succeeded()) {
-              promise.complete(r.result());
-            } else promise.fail(r.cause());
+            if (r.succeeded()) promise.complete(r.result());
+            else promise.fail(r.cause());
           })).compose(file -> Future.future(promise ->
             client.get(443, fileServer, uri)
               .as(BodyCodec.pipe(file))
               .send(HttpCallbackCommons.standardHttpCallback(r -> {
-                if (r.succeeded()) handler.handle(Future.succeededFuture());
+                file.close();
+
+                if (r.succeeded()) promise.complete();
                 else {
                   fileSystem.delete(filePath, t -> {
                     if (t.failed()) t.cause().printStackTrace();

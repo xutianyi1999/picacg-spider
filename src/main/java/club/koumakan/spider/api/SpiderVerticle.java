@@ -45,7 +45,7 @@ public class SpiderVerticle extends AbstractVerticle {
     String email = config.getString("email");
     String password = config.getString("password");
 
-    SpiderService spiderService = new SpiderService(client, null, null);
+    SpiderService spiderService = new SpiderService(client, vertx.fileSystem(), "D:\\pic-test");
 
     Consumer<MonoSink<Void>> login = sink -> spiderService.login(email, password, r -> {
       if (r.succeeded()) {
@@ -88,9 +88,10 @@ public class SpiderVerticle extends AbstractVerticle {
                   .getJsonObject("data")
                   .getJsonObject("pages");
 
-                pagesJson.getJsonArray("docs").forEach(v ->
-                  sink.next(Tuples.of(doc, epsId, v))
-                );
+                pagesJson.getJsonArray("docs").forEach(v -> {
+                  JsonObject pictureJson = (JsonObject) v;
+                  sink.next(Tuples.of(doc, epsId, pictureJson));
+                });
 
                 Integer totalPages = pagesJson.getInteger("pages");
 
@@ -106,14 +107,38 @@ public class SpiderVerticle extends AbstractVerticle {
       return flux;
     };
 
+    Function<Tuple3<JsonObject, Integer, JsonObject>, Flux<String>> downloadImg = tuple -> {
+      JsonObject bookDoc = tuple.getT1();
+      String bookTitle = bookDoc.getString("title");
+
+      JsonObject imgInfo = tuple.getT3();
+
+      JsonObject media = imgInfo.getJsonObject("media");
+      String originalName = media.getString("originalName");
+      String ImgPath = media.getString("path");
+      String fileServer = media.getString("fileServer");
+
+      Flux<String> flux = Flux.create(sink -> spiderService.downloadImg(fileServer, ImgPath, bookTitle, tuple.getT2(), originalName,
+        res -> {
+          if (res.succeeded()) {
+            if (res.result()) {
+              sink.next(bookTitle + "-" + tuple.getT2() + "-" + originalName).complete();
+            } else sink.complete();
+          } else sink.error(res.cause());
+        }
+      ));
+      return flux;
+    };
+
     Mono.create(login)
       .thenMany(Flux.create(getMyFavoriteBooks))
       .flatMap(getBookResult)
-      .subscribe(v -> {
-        System.out.println("--------------------------------------------------------------------------------");
-        System.out.println(v.getT1().encodePrettily());
-        System.out.println(v.getT2());
-        System.out.println(v.getT3().encodePrettily());
+      .flatMap(downloadImg)
+      .doOnNext(filename -> System.out.println("download: " + filename))
+      .count()
+      .subscribe(count -> {
+        System.out.println("download " + count + "img");
+        System.out.println("done");
       }, Throwable::printStackTrace);
   }
 }
