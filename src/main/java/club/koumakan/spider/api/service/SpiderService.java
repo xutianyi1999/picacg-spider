@@ -1,5 +1,6 @@
 package club.koumakan.spider.api.service;
 
+import club.koumakan.spider.MainVerticle;
 import club.koumakan.spider.api.HttpCallbackCommons;
 import club.koumakan.spider.api.PicHttpHeaderUtil;
 import io.vertx.core.AsyncResult;
@@ -98,7 +99,7 @@ public class SpiderService {
                 if (r.succeeded()) promise.complete();
                 else {
                   fileSystem.delete(filePathStr, t -> {
-                    if (t.failed()) t.cause().printStackTrace();
+                    if (t.failed()) MainVerticle.logger.error("file del error", t.cause());
                   });
                   promise.fail(r.cause());
                 }

@@ -4,6 +4,8 @@ import club.koumakan.spider.api.PicHttpHeaderUtil;
 import club.koumakan.spider.api.service.SpiderService;
 import io.vertx.core.AbstractVerticle;
 import io.vertx.core.json.JsonObject;
+import io.vertx.core.logging.Logger;
+import io.vertx.core.logging.LoggerFactory;
 import io.vertx.core.net.ProxyOptions;
 import io.vertx.core.net.ProxyType;
 import io.vertx.ext.web.client.WebClient;
@@ -20,9 +22,13 @@ import java.util.function.Function;
 
 public class MainVerticle extends AbstractVerticle {
 
+  public static final Logger logger = LoggerFactory.getLogger("picacg-spider");
+
   @Override
   public void start() {
+
     WebClientOptions options = new WebClientOptions()
+      .setMaxPoolSize(30)
       .setUserAgent(PicHttpHeaderUtil.USER_AGENT)
       .setSsl(true)
       .setTrustAll(true);
@@ -53,7 +59,7 @@ public class MainVerticle extends AbstractVerticle {
     Consumer<MonoSink<Void>> login = sink -> spiderService.login(email, password, r -> {
       if (r.succeeded()) {
         sink.success();
-        System.out.println("login success");
+        logger.info("login success");
       } else sink.error(r.cause());
     });
 
@@ -72,7 +78,7 @@ public class MainVerticle extends AbstractVerticle {
               f.accept(pageNum + 1);
             } else sink.complete();
           } else {
-            res.cause().printStackTrace();
+            logger.error("getMyFavoriteBooks error", res.cause());
             sink.complete();
           }
         })
@@ -105,7 +111,7 @@ public class MainVerticle extends AbstractVerticle {
                   f.accept(pageNum + 1);
                 } else sink.complete();
               } else {
-                res.cause().printStackTrace();
+                logger.error("getBookResult error", res.cause());
                 sink.complete();
               }
             })
@@ -134,7 +140,7 @@ public class MainVerticle extends AbstractVerticle {
               sink.next(bookTitle + "-" + tuple.getT2() + "-" + originalName).complete();
             } else sink.complete();
           } else {
-            res.cause().printStackTrace();
+            logger.error("downloadImg error", res.cause());
             sink.complete();
           }
         }
@@ -146,15 +152,11 @@ public class MainVerticle extends AbstractVerticle {
       .thenMany(Flux.create(getMyFavoriteBooks))
       .flatMap(getBookResult)
       .flatMap(downloadImg)
-      .doOnNext(filename -> System.out.println("download: " + filename))
+      .doOnNext(filename -> logger.info("download: " + filename))
       .count()
       .subscribe(count -> {
-        System.out.println("count: " + count + " img");
-        System.out.println("done");
-        vertx.close();
-      }, err -> {
-        err.printStackTrace();
-        vertx.close();
-      });
+        logger.info("count: " + count + " img");
+        logger.info("done");
+      }, err -> logger.error("error", err));
   }
 }
