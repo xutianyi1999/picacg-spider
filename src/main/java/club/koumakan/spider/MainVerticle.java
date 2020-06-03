@@ -54,7 +54,7 @@ public class MainVerticle extends AbstractVerticle {
     String email = config.getString("email");
     String password = config.getString("password");
 
-    SpiderService spiderService = new SpiderService(client, vertx.fileSystem(), imgDirectory);
+    SpiderService spiderService = new SpiderService(client, vertx.fileSystem(), imgDirectory, vertx::setTimer);
 
     Consumer<MonoSink<Void>> login = sink -> spiderService.login(email, password, r -> {
       if (r.succeeded()) {
@@ -133,8 +133,8 @@ public class MainVerticle extends AbstractVerticle {
       String ImgPath = media.getString("path");
       String fileServer = media.getString("fileServer").replace("https://", "");
 
-      Flux<String> flux = Flux.create(sink -> spiderService.downloadImg(fileServer, ImgPath, bookTitle, tuple.getT2(), originalName,
-        res -> {
+      Flux<String> flux = Flux.create(sink -> spiderService.downloadImg(fileServer, ImgPath,
+        bookTitle, tuple.getT2(), originalName, res -> {
           if (res.succeeded()) {
             if (res.result()) {
               sink.next(bookTitle + "-" + tuple.getT2() + "-" + originalName).complete();
