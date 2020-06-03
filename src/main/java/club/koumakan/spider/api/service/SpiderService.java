@@ -15,16 +15,15 @@ import io.vertx.ext.web.client.HttpRequest;
 import io.vertx.ext.web.client.WebClient;
 import io.vertx.ext.web.codec.BodyCodec;
 
-import java.net.URLEncoder;
-import java.nio.charset.StandardCharsets;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.function.BiConsumer;
+import java.util.regex.Pattern;
 
 public class SpiderService {
 
   private final OpenOptions openOptions = new OpenOptions();
-
+  private final String regEx = "[`~!@#$%^&*()+=|{}:;\\\\[\\\\].<>/?~！@#￥%……&*（）——+|{}【】‘；：”“’。，、？']";
   private final WebClient client;
   private final FileSystem fileSystem;
   private final String imgDirectory;
@@ -88,9 +87,9 @@ public class SpiderService {
 
     Path filePath = Paths.get(
       imgDirectory,
-      URLEncoder.encode(bookTitle, StandardCharsets.UTF_8),
+      Pattern.compile(regEx).matcher(bookTitle).replaceAll("").trim(),
       String.valueOf(epsId),
-      URLEncoder.encode(imgOriginalName, StandardCharsets.UTF_8)
+      Pattern.compile(regEx).matcher(imgOriginalName).replaceAll("").trim()
     );
 
     String filePathStr = filePath.toString();
