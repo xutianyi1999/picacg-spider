@@ -15,6 +15,8 @@ import io.vertx.ext.web.client.HttpRequest;
 import io.vertx.ext.web.client.WebClient;
 import io.vertx.ext.web.codec.BodyCodec;
 
+import java.net.URLEncoder;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.function.BiConsumer;
@@ -84,7 +86,13 @@ public class SpiderService {
                           String bookTitle, int epsId, String imgOriginalName,
                           Handler<AsyncResult<Boolean>> handler) {
 
-    Path filePath = Paths.get(imgDirectory, bookTitle.trim(), String.valueOf(epsId), imgOriginalName.trim());
+    Path filePath = Paths.get(
+      imgDirectory,
+      URLEncoder.encode(bookTitle, StandardCharsets.UTF_8),
+      String.valueOf(epsId),
+      URLEncoder.encode(imgOriginalName, StandardCharsets.UTF_8)
+    );
+
     String filePathStr = filePath.toString();
     String fileParentStr = filePath.getParent().toString();
     String uri = "/static/" + imgPath;
