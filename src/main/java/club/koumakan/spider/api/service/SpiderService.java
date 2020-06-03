@@ -84,7 +84,7 @@ public class SpiderService {
                           String bookTitle, int epsId, String imgOriginalName,
                           Handler<AsyncResult<Boolean>> handler) {
 
-    Path filePath = Paths.get(imgDirectory, bookTitle, String.valueOf(epsId), imgOriginalName);
+    Path filePath = Paths.get(imgDirectory, bookTitle.trim(), String.valueOf(epsId), imgOriginalName.trim());
     String filePathStr = filePath.toString();
     String fileParentStr = filePath.getParent().toString();
     String uri = "/static/" + imgPath;
