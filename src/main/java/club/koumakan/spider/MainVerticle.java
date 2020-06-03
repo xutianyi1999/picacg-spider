@@ -26,7 +26,6 @@ public class MainVerticle extends AbstractVerticle {
 
   @Override
   public void start() {
-
     WebClientOptions options = new WebClientOptions()
       .setKeepAlive(true)
       .setUserAgent(PicHttpHeaderUtil.USER_AGENT)
