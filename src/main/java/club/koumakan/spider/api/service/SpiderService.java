@@ -23,7 +23,7 @@ import java.util.regex.Pattern;
 public class SpiderService {
 
   private final OpenOptions openOptions = new OpenOptions();
-  private final String regEx = "[`~!@#$%^&*()+=|{}:;\\\\[\\\\]<>/?~！@#￥%……&*（）——+|{}【】‘；：”“’。，、？']";
+  private final Pattern pattern = Pattern.compile("[`~!@#$%^&*()+=|{}:;\\\\[\\\\]<>/?~！@#￥%……&*（）——+|{}【】‘；：”“’。，、？']");
   private final WebClient client;
   private final FileSystem fileSystem;
   private final String imgDirectory;
@@ -87,9 +87,9 @@ public class SpiderService {
 
     Path filePath = Paths.get(
       imgDirectory,
-      Pattern.compile(regEx).matcher(bookTitle).replaceAll("").trim(),
+      pattern.matcher(bookTitle).replaceAll("").trim(),
       String.valueOf(epsId),
-      Pattern.compile(regEx).matcher(imgOriginalName).replaceAll("").trim()
+      pattern.matcher(imgOriginalName).replaceAll("").trim()
     );
 
     String filePathStr = filePath.toString();
