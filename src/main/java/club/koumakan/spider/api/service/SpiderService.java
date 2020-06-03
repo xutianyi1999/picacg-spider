@@ -23,7 +23,7 @@ import java.util.regex.Pattern;
 public class SpiderService {
 
   private final OpenOptions openOptions = new OpenOptions();
-  private final String regEx = "[`~!@#$%^&*()+=|{}:;\\\\[\\\\].<>/?~！@#￥%……&*（）——+|{}【】‘；：”“’。，、？']";
+  private final String regEx = "[`~!@#$%^&*()+=|{}:;\\\\[\\\\]<>/?~！@#￥%……&*（）——+|{}【】‘；：”“’。，、？']";
   private final WebClient client;
   private final FileSystem fileSystem;
   private final String imgDirectory;
