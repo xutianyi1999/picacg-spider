@@ -124,7 +124,7 @@ public class MainVerticle extends AbstractVerticle {
       return flux;
     };
 
-    Function<Tuple3<JsonObject, Integer, JsonObject>, Flux<String>> downloadImg = tuple -> {
+    Function<Tuple3<JsonObject, Integer, JsonObject>, Mono<String>> downloadImg = tuple -> {
       JsonObject bookDoc = tuple.getT1();
       String bookTitle = bookDoc.getString("title");
 
@@ -135,18 +135,18 @@ public class MainVerticle extends AbstractVerticle {
       String ImgPath = media.getString("path");
       String fileServer = media.getString("fileServer").replace("https://", "");
 
-      Flux<String> flux = Flux.create(sink -> spiderService.downloadImg(fileServer, ImgPath,
+      Mono<String> mono = Mono.create(sink -> spiderService.downloadImg(fileServer, ImgPath,
         bookTitle, tuple.getT2(), originalName, res -> {
-          if (res.succeeded()) {
-            if (res.result()) {
-              sink.next(bookTitle + "-" + tuple.getT2() + "-" + originalName);
-            }
-          } else logger.error("downloadImg error", res.cause());
+          boolean flag = false;
 
-          sink.complete();
+          if (res.succeeded()) flag = res.result();
+          else logger.error("downloadImg error", res.cause());
+
+          if (flag) sink.success(bookTitle + "-" + tuple.getT2() + "-" + originalName);
+          else sink.success();
         }
       ));
-      return flux;
+      return mono;
     };
 
     Mono.create(login)
