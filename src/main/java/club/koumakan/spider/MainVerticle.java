@@ -156,7 +156,7 @@ public class MainVerticle extends AbstractVerticle {
       .doOnNext(filename -> logger.info("download: " + filename))
       .count()
       .subscribe(count -> {
-        logger.info("count: " + count + " img");
+        logger.info("count: " + count + " images");
         logger.info("done");
       }, err -> logger.error("error", err));
   }
