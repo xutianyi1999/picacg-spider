@@ -89,7 +89,7 @@ public class MainVerticle extends AbstractVerticle {
       String bookId = doc.getString("_id");
       Integer epsCount = doc.getInteger("epsCount");
 
-      // tuple <doc, epsId, pictureJson>
+      // tuple(doc, epsId, pictureJson)
       Flux<Tuple3<JsonObject, Integer, JsonObject>> flux = Flux.range(1, epsCount)
         .flatMap(epsId -> Flux.create(sink -> {
           Consumer<Integer> getImagesByPage = YFact.yConsumer(f -> pageNum ->

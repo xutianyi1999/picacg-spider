@@ -15,8 +15,6 @@
     <maven-shade-plugin.version>3.2.3</maven-shade-plugin.version>
 
     <vertx.version>3.9.1</vertx.version>
-
-    <main.verticle>club.koumakan.spider.MainVerticle</main.verticle>
   </properties>
 
   <dependencyManagement>
