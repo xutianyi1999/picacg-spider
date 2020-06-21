@@ -139,12 +139,11 @@ public class MainVerticle extends AbstractVerticle {
         bookTitle, tuple.getT2(), originalName, res -> {
           if (res.succeeded()) {
             if (res.result()) {
-              sink.next(bookTitle + "-" + tuple.getT2() + "-" + originalName).complete();
-            } else sink.complete();
-          } else {
-            logger.error("downloadImg error", res.cause());
-            sink.complete();
-          }
+              sink.next(bookTitle + "-" + tuple.getT2() + "-" + originalName);
+            }
+          } else logger.error("downloadImg error", res.cause());
+
+          sink.complete();
         }
       ));
       return flux;

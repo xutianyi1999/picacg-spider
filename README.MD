@@ -18,7 +18,7 @@
 - email: 邮箱/用户名
 - password: 密码
 - imgDirectory: 下载图片目录
-- range: 范围 (闭区间)
+- range: 旧到新 1~20页 (闭区间)
 - socks5
     - isEnable: 是否开启
 
