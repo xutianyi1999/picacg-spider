@@ -3,6 +3,7 @@ package club.koumakan.spider;
 import club.koumakan.spider.api.PicHttpHeaderUtil;
 import club.koumakan.spider.api.service.SpiderService;
 import io.vertx.core.AbstractVerticle;
+import io.vertx.core.json.JsonArray;
 import io.vertx.core.json.JsonObject;
 import io.vertx.core.logging.Logger;
 import io.vertx.core.logging.LoggerFactory;
@@ -35,7 +36,10 @@ public class MainVerticle extends AbstractVerticle {
     JsonObject config = vertx.fileSystem().readFileBlocking("./config.json").toJsonObject();
 
     String imgDirectory = config.getString("imgDirectory");
-    int startPageIndex = config.getInteger("startPageIndex");
+
+    JsonArray range = config.getJsonArray("range");
+    int start = range.getInteger(0);
+    int end = range.getInteger(1);
 
     JsonObject socks5 = config.getJsonObject("socks5");
 
@@ -71,9 +75,8 @@ public class MainVerticle extends AbstractVerticle {
               .getJsonObject("comics");
 
             comics.getJsonArray("docs").forEach(v -> sink.next((JsonObject) v));
-            Integer totalPages = comics.getInteger("pages");
 
-            if (pageNum < totalPages) {
+            if (pageNum < end) {
               f.accept(pageNum + 1);
             } else sink.complete();
           } else {
@@ -82,7 +85,7 @@ public class MainVerticle extends AbstractVerticle {
           }
         })
       );
-      getBooksByPage.accept(startPageIndex);
+      getBooksByPage.accept(start);
     };
 
     Function<JsonObject, Flux<Tuple3<JsonObject, Integer, JsonObject>>> getBookResult = doc -> {

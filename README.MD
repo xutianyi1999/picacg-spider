@@ -7,7 +7,7 @@
   "email": "xxx",
   "password": "123",
   "imgDirectory": "D:\\pic",
-  "startPageIndex": 1,
+  "range": [1, 20],
   "socks5": {
     "isEnable": true,
     "host": "127.0.0.1",
@@ -18,7 +18,7 @@
 - email: 邮箱/用户名
 - password: 密码
 - imgDirectory: 下载图片目录
-- startPageIndex: 抓取起始页数（从旧到新）
+- range: 范围 (闭区间)
 - socks5
     - isEnable: 是否开启
 
