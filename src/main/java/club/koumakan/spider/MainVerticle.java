@@ -28,7 +28,6 @@ public class MainVerticle extends AbstractVerticle {
   @Override
   public void start() {
     WebClientOptions options = new WebClientOptions()
-      .setUseAlpn(true)
       .setKeepAlive(true)
       .setUserAgent(PicHttpHeaderUtil.USER_AGENT)
       .setSsl(true)
