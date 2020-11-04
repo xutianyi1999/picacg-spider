@@ -184,3 +184,4 @@ nbdist/
 !.vscode/launch.json
 !.vscode/extensions.json
 /config.json
+/.idea/
